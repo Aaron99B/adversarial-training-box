@@ -2,12 +2,12 @@ import wandb
 import torch
 from pathlib import Path
 
-from adversarial_training_box.attribute_dict import AttributeDict
+from adversarial_training_box.database.attribute_dict import AttributeDict
 
 class ExperimentTracker:
     def __init__(self, project: str, base_path: Path, training_parameters: AttributeDict) -> None:
         self.training_parameters = training_parameters
-        wandb.init(
+        self.run = wandb.init(
         # set the wandb project where this run will be logged
         project=project,
         # track hyperparameters and run metadata
@@ -23,9 +23,18 @@ class ExperimentTracker:
     def log(self, information: dict) -> None:
         wandb.log(information)
 
-    def save_model(self, network, data) -> None:
-        torch.onnx.export(network, data, self.path / "model.onnx")
-        wandb.run.save(self.path / "model.onnx")
+    def save_model(self, network, data, upload_model=False) -> None:
+        model_path = self.path / "model.onnx"
+        torch.onnx.export(network, data, model_path)
+        if upload_model:
+            artifact = wandb.Artifact('model', type='model')
+            artifact.add_file(model_path)
+            self.run.log_artifact(artifact)
 
     def watch(self, network, criterion, log_option, log_frequency):
        wandb.watch(network, criterion, log_option, log_frequency)
+
+    def save_class_accuracy_table(self, data: list[tuple[int, float]]):
+       columns = ["class", "accuracy",]
+       table = wandb.Table(data=data, columns=columns)
+       wandb.log({"class_wise_accuracy" : table})
