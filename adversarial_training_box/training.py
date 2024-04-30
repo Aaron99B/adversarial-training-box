@@ -5,6 +5,9 @@ from pathlib import Path
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from adversarial_training_box.adversarial_attack.clever_hans_attack import CleverHansAttack
+from adversarial_training_box.adversarial_attack.fgsm_attack import FGSMAttack
+from adversarial_training_box.adversarial_attack.foolbox_attack import FoolboxAttack
 from adversarial_training_box.models.cnn_dropout import Net
 from adversarial_training_box.database.experiment_tracker import ExperimentTracker
 from adversarial_training_box.database.attribute_dict import AttributeDict
@@ -69,6 +72,41 @@ def test_accuracy_class_wise(network: torch.nn.Module, test_loader: torch.utils.
     experiment_tracker.save_class_accuracy_table(class_accuracies)
 
 
+def test_robust_accuracy(network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, criterion: torch.nn.Module, experiment_tracker: ExperimentTracker, epsilon: float):
+    correct = 0
+    total = 0
+
+    results = []
+
+    attack = CleverHansAttack()
+
+    for data, target in tqdm(test_loader):
+        data.requires_grad = True
+
+        output = network(data)
+        #init_pred = output.max(1, keepdim=True)[1] 
+
+        loss = criterion(output, target)
+
+        network.zero_grad()
+
+        loss.backward()
+
+        perturbed_data = attack.compute_perturbed_image(network, data, target, epsilon)
+
+        output = network(perturbed_data)
+
+        _, final_pred = output.data.max(1, keepdim=True)
+
+        correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
+        total += target.size(0)
+
+    final_acc = 100 * correct / total
+
+    results.append({"epsilon" : epsilon, "robust_accuracy" : final_acc, "attack" : "fgsm"})
+    experiment_tracker.log_table("robust_accuracy", results)
+
+
 if __name__ == "__main__":
 
     training_parameters = AttributeDict(epochs = 1,
@@ -77,6 +115,7 @@ if __name__ == "__main__":
         momentum = 0.5,
         log_interval = 10,
         random_seed = 1)
+    
     network = Net()
     optimizer = optim.SGD(network.parameters(), lr=training_parameters.learning_rate,
             momentum=training_parameters.momentum)
@@ -99,7 +138,7 @@ if __name__ == "__main__":
 
     train(training_parameters, criterion, network, train_loader, experiment_tracker)
 
-    batch_size_test = 100
+    batch_size_test = 128
 
     test_loader = torch.utils.data.DataLoader(
     torchvision.datasets.MNIST('../data', train=False, download=True,
@@ -108,4 +147,5 @@ if __name__ == "__main__":
 
 
     test(network, criterion, test_loader)
+    test_robust_accuracy(network, test_loader, criterion, experiment_tracker, 0.4)
     #test_accuracy_class_wise(network, test_loader, experiment_tracker)

@@ -1,6 +1,7 @@
 import wandb
 import torch
 from pathlib import Path
+import pandas as pd
 
 from adversarial_training_box.database.attribute_dict import AttributeDict
 
@@ -26,6 +27,7 @@ class ExperimentTracker:
     def save_model(self, network, data, upload_model=False) -> None:
         model_path = self.path / "model.onnx"
         torch.onnx.export(network, data, model_path)
+        
         if upload_model:
             artifact = wandb.Artifact('model', type='model')
             artifact.add_file(model_path)
@@ -38,3 +40,8 @@ class ExperimentTracker:
        columns = ["class", "accuracy",]
        table = wandb.Table(data=data, columns=columns)
        wandb.log({"class_wise_accuracy" : table})
+
+    def log_table(self, name: str, data: list[dict]):
+       df = pd.DataFrame.from_dict(data)
+       table = wandb.Table(dataframe=df)
+       wandb.log({name : table})
