@@ -6,6 +6,9 @@ from adversarial_training_box.adversarial_attack.adversarial_attack import Adver
 
 
 class FoolboxAttack(AdversarialAttack):
+    def __init__(self) -> None:
+        super().__init__("foolbox")
+        
     def compute_perturbed_image(self, model: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
         fmodel = PyTorchModel(model, bounds=(0, 1), device="cpu")
         attack = LinfPGD()

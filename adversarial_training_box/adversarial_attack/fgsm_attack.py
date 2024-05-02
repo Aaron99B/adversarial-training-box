@@ -5,6 +5,9 @@ from adversarial_training_box.adversarial_attack.adversarial_attack import Adver
 
 class FGSMAttack(AdversarialAttack):
 
+    def __init__(self) -> None:
+        super().__init__("FGSM")
+
     # FGSM attack code
     def fgsm_attack(self, image, epsilon, data_grad):
         # Collect the element-wise sign of the data gradient
@@ -37,7 +40,7 @@ class FGSMAttack(AdversarialAttack):
         return batch * std.view(1, -1, 1, 1) + mean.view(1, -1, 1, 1)
 
 
-    def compute_adversarial_example(self, model: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
+    def compute_perturbed_image(self, network: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
 
         data_grad = data.grad.data
         data_denorm = self.denorm(data)
