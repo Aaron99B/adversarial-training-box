@@ -2,3 +2,4 @@ generated
 data
 wandb
 __pycache__
+logs
