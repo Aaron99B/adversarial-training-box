@@ -11,11 +11,9 @@ class MNIST_RELU_4_1024(nn.Module):
         self.layer4 = nn.Linear(1024, 10)
 
     def forward(self,x):
-        x = torch.permute(x, (0,2,3,1))
-        x = x.reshape((-1, 784))
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = F.relu(self.layer3(x))
-        x = F.relu(self.layer4(x))
+        x = self.layer4(x)
 
         return x
