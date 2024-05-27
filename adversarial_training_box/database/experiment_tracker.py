@@ -43,5 +43,6 @@ class ExperimentTracker:
 
     def log_table(self, name: str, data: list[dict]):
        df = pd.DataFrame.from_dict(data)
-       table = wandb.Table(dataframe=df)
-       wandb.log({name : table})
+       #table = wandb.Table(dataframe=df)
+       #wandb.log({name : table})
+       df.to_csv(self.path / "accuracy_table.csv")
