@@ -1,7 +1,13 @@
 import torch
 import torchvision
+import numpy as np
+from torch import nn
 
 from adversarial_training_box.adversarial_attack.adversarial_attack import AdversarialAttack
+
+from cleverhans.torch.attacks.projected_gradient_descent import (
+    fast_gradient_method
+)
 
 class FGSMAttack(AdversarialAttack):
 
@@ -42,13 +48,20 @@ class FGSMAttack(AdversarialAttack):
 
     def compute_perturbed_image(self, network: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
 
+        data.requires_grad = True
+
+        output = network(data)
+
+        loss_fn = nn.CrossEntropyLoss()
+
+        loss = loss_fn(output, labels)
+
+        network.zero_grad()
+
+        loss.backward()
+
         data_grad = data.grad.data
-        data_denorm = self.denorm(data)
 
-        # Call FGSM Attack
-        perturbed_data = self.fgsm_attack(data_denorm, epsilon, data_grad)
+        perturbed_data = self.fgsm_attack(data, epsilon, data_grad)
 
-        # Reapply normalization
-        perturbed_data_normalized = torchvision.transforms.Normalize((0.1307,), (0.3081,))(perturbed_data)
-
-        return perturbed_data_normalized
+        return perturbed_data

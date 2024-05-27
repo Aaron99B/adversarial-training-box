@@ -14,6 +14,6 @@ class CleverHansAttack(AdversarialAttack):
         super().__init__("PGD")
         
     def compute_perturbed_image(self, network: Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
-        x = projected_gradient_descent(model_fn=network, x=data, eps=epsilon, eps_iter=0.01, nb_iter=30, norm=np.inf)
+        x = projected_gradient_descent(model_fn=network, x=data, eps=epsilon, eps_iter=0.01, nb_iter=10, norm=np.inf, rand_init=True)
 
         return x
