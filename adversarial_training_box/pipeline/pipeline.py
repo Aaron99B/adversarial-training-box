@@ -23,7 +23,7 @@ class Pipeline:
         for module in training_stack:
             module.train(train_loader, network, self.optimizer, self.experiment_tracker)
 
-        self.save_model(network, next(iter(train_loader))[0].reshape(-1, 784))
+        self.save_model(network, next(iter(train_loader))[0][0])
 
 
     def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[dict]):
