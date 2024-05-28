@@ -20,7 +20,6 @@ class StandardTrainingModule(TrainingModule):
 
         for epoch in range(0,self.number_epochs):
             for batch_idx, (data, target) in enumerate(tqdm(data_loader)):
-                data = data.reshape(-1, 784)
 
                 if not self.attack is None:
                     data = self.attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=self.epsilon)

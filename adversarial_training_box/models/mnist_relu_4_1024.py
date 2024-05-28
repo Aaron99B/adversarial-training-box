@@ -12,6 +12,7 @@ class MNIST_RELU_4_1024(nn.Module):
         self.layer4 = nn.Linear(1024, 10)
 
     def forward(self,x):
+        x = x.view(-1, 784)
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = F.relu(self.layer3(x))

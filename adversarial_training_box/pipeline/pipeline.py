@@ -39,7 +39,6 @@ class Pipeline:
             print(f'testing for attack: {attack} and epsilon: {epsilon}')
 
             for data, target in tqdm(test_loader):
-                data = data.reshape(-1, 784)
 
                 if not attack is None:
                     data = attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=epsilon)

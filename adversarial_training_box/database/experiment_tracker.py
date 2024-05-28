@@ -32,7 +32,8 @@ class ExperimentTracker:
          self.path.mkdir(parents=True)
     
     def log(self, information: dict) -> None:
-        wandb.log(information)
+        if self.logged_in:
+            wandb.log(information)
 
     def save_model(self, network, data, upload_model=False) -> None:
         model_path = self.path / f"{network.name}.onnx"
@@ -44,7 +45,8 @@ class ExperimentTracker:
             self.run.log_artifact(artifact)
 
     def watch(self, network, criterion, log_option, log_frequency):
-       wandb.watch(network, criterion, log_option, log_frequency)
+        if self.logged_in:
+            wandb.watch(network, criterion, log_option, log_frequency)
 
     def save_class_accuracy_table(self, data: list[tuple[int, float]]):
        columns = ["class", "accuracy",]
