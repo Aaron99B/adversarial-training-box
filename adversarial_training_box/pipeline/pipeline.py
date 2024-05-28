@@ -4,86 +4,62 @@ from tqdm import tqdm
 from adversarial_training_box.adversarial_attack.adversarial_attack import AdversarialAttack
 from adversarial_training_box.database.attribute_dict import AttributeDict
 from adversarial_training_box.database.experiment_tracker import ExperimentTracker
+from adversarial_training_box.pipeline.training_module import TrainingModule
 
 
 class Pipeline:
-    def __init__(self, experiment_tracker: ExperimentTracker, train_loader: torch.utils.data.DataLoader, test_loader: torch.utils.data.DataLoader, training_parameters: AttributeDict, criterion: torch.nn.Module, optimizer: torch.optim) -> None:
+    def __init__(self, experiment_tracker: ExperimentTracker, training_parameters: AttributeDict, criterion: torch.nn.Module, optimizer: torch.optim) -> None:
         self.experiment_tracker = experiment_tracker
-        self.train_loader = train_loader
-        self.test_loader = test_loader
         self.training_parameters = training_parameters
         self.criterion = criterion
         self.optimizer = optimizer
 
-    def train(self, network: torch.nn.Module):
-    
-        self.experiment_tracker.watch(network, self.criterion, log_option="all", log_frequency=10)
-
-        network.train()
-        for epoch in range(0,self.training_parameters.epochs):
-            for batch_idx, (data, target) in enumerate(tqdm(self.train_loader)):
-                self.optimizer.zero_grad()
-                output = network(data)
-                loss = self.criterion(output, target)
-                loss.backward()
-                self.optimizer.step()
-                self.experiment_tracker.log({"loss": loss.item(), "epoch" : epoch})
-
-
-    def test_normal_accuracy(self, network: torch.nn.Module):
-        network.eval()
-        test_loss = 0
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for data, label in self.test_loader:
-                output = network(data)
-                test_loss += self.criterion(output, label, size_average=False).item()
-                _, predicted = output.data.max(1, keepdim=True)
-                correct += predicted.eq(label.data.view_as(predicted)).sum()
-                total += label.size(0)
-                test_loss /= len(self.test_loader.dataset)
-                self.experiment_tracker.log({"test_loss": test_loss})
-                
-        self.experiment_tracker.log({"test_accuracy": 100. * correct / total})
-
+    def save_model(self, network, data):
         self.experiment_tracker.save_model(network, data)
 
+    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[TrainingModule]):
 
-    def test_robust_accuracy(self, network: torch.nn.Module, epsilons: list[float], attacks: list[AdversarialAttack]):
-        
-        results = []
+        network.train()
+        for module in training_stack:
+            module.train(train_loader, network, self.optimizer, self.experiment_tracker)
 
-        for attack in attacks:
+        self.save_model(network, next(iter(train_loader))[0].reshape(-1, 784))
 
-            for epsilon in epsilons:
-                correct = 0
-                total = 0
 
-                for data, target in tqdm(self.test_loader):
-                    data.requires_grad = True
+    def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[dict]):
 
-                    output = network(data)
+        for testing_item in testing_stack:
 
-                    loss = self.criterion(output, target)
+            attack = testing_item["attack"]
+            epsilon = testing_item["epsilon"]
 
-                    network.zero_grad()
+            correct = 0
+            total = 0
 
-                    loss.backward()
+            print(f'testing for attack: {attack} and epsilon: {epsilon}')
 
-                    perturbed_data = attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=epsilon)
+            for data, target in tqdm(test_loader):
+                data = data.reshape(-1, 784)
 
-                    output = network(perturbed_data)
+                if not attack is None:
+                    data = attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=epsilon)
 
-                    _, final_pred = output.data.max(1, keepdim=True)
+                output = network(data)
 
-                    correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
-                    total += target.size(0)
+                _, final_pred = output.data.max(1, keepdim=True)
 
-                final_acc = 100 * correct / total
+                correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
+                total += target.size(0)
 
-                results.append({"epsilon" : epsilon, "attack" : attack.name, "robust_accuracy" : final_acc})
-        self.experiment_tracker.log_table("robust_accuracy", results)
+            final_acc = 100 * correct / total
+
+
+            if attack is None:
+                attack_name = "no_attack"
+            else:
+                attack_name = attack.name
+            self.experiment_tracker.log_test_result({"epsilon" : epsilon, "attack" : attack_name, "accuracy" : final_acc})
+        self.experiment_tracker.log_table_result_table_online()
 
 
     def test_accuracy_class_wise(self, network: torch.nn.Module):
