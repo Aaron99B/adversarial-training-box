@@ -27,7 +27,7 @@ class ExperimentTracker:
         
         self.logged_in = login
 
-        self.path = base_path / self.experiment_name
+        self.path = base_path / project / self.experiment_name
         if not self.path.exists():
          self.path.mkdir(parents=True)
     
