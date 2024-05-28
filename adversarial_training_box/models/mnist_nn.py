@@ -9,6 +9,7 @@ class MNIST_NN(nn.Module):
         self.layer3 = nn.Linear(256, 10)
 
     def forward(self,x):
+        x = x.view(-1, 784)
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = self.layer3(x)
