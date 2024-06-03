@@ -17,3 +17,6 @@ class AutoAttackModule(AdversarialAttack):
         adversary = AutoAttack(network, norm="Linf", eps=epsilon, version="standard", device=device)
         x = adversary.run_standard_evaluation(data, labels)
         return x
+    
+    def __str__(self) -> str:
+        return self.name

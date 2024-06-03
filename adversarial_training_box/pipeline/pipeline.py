@@ -5,6 +5,7 @@ from adversarial_training_box.adversarial_attack.adversarial_attack import Adver
 from adversarial_training_box.database.attribute_dict import AttributeDict
 from adversarial_training_box.database.experiment_tracker import ExperimentTracker
 from adversarial_training_box.pipeline.training_module import TrainingModule
+from adversarial_training_box.pipeline.test_module import TestModule
 
 
 class Pipeline:
@@ -26,38 +27,15 @@ class Pipeline:
         self.save_model(network, next(iter(train_loader))[0][0])
 
 
-    def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[dict]):
+    def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[TestModule]):
 
-        for testing_item in testing_stack:
+        for module in testing_stack:
 
-            attack = testing_item["attack"]
-            epsilon = testing_item["epsilon"]
+            print(f'testing for attack: {module.attack} and epsilon: {module.epsilon}')
 
-            correct = 0
-            total = 0
+            attack, epsilon, accuracy = module.test(test_loader, network)
+            self.experiment_tracker.log_test_result({"epsilon" : epsilon, "attack" : str(attack), "accuracy" : accuracy})
 
-            print(f'testing for attack: {attack} and epsilon: {epsilon}')
-
-            for data, target in tqdm(test_loader):
-
-                if not attack is None:
-                    data = attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=epsilon)
-
-                output = network(data)
-
-                _, final_pred = output.data.max(1, keepdim=True)
-
-                correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
-                total += target.size(0)
-
-            final_acc = 100 * correct / total
-
-
-            if attack is None:
-                attack_name = "no_attack"
-            else:
-                attack_name = attack.name
-            self.experiment_tracker.log_test_result({"epsilon" : epsilon, "attack" : attack_name, "accuracy" : final_acc})
         self.experiment_tracker.log_table_result_table_online()
 
 

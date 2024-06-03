@@ -16,3 +16,6 @@ class FoolboxAttack(AdversarialAttack):
         raw_advs, adversaries, success = attack(fmodel, data, labels, epsilons=epsilon)
 
         return adversaries
+    
+    def __str__(self) -> str:
+        return self.name

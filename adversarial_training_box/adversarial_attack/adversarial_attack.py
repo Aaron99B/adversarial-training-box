@@ -9,3 +9,7 @@ class AdversarialAttack(ABC):
     @abstractmethod
     def compute_perturbed_image(self, network: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
         pass
+
+    @abstractmethod
+    def __str__(self) -> str:
+        pass

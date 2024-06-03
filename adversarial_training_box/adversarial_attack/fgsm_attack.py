@@ -65,3 +65,6 @@ class FGSMAttack(AdversarialAttack):
         perturbed_data = self.fgsm_attack(data, epsilon, data_grad)
 
         return perturbed_data
+    
+    def __str__(self) -> str:
+        return self.name
