@@ -29,6 +29,7 @@ class Pipeline:
 
     def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[TestModule]):
 
+        network.eval()
         for module in testing_stack:
 
             print(f'testing for attack: {module.attack} and epsilon: {module.epsilon}')
