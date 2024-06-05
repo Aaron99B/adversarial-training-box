@@ -9,11 +9,12 @@ from adversarial_training_box.pipeline.test_module import TestModule
 
 
 class Pipeline:
-    def __init__(self, experiment_tracker: ExperimentTracker, training_parameters: AttributeDict, criterion: torch.nn.Module, optimizer: torch.optim) -> None:
+    def __init__(self, experiment_tracker: ExperimentTracker, training_parameters: AttributeDict, criterion: torch.nn.Module, optimizer: torch.optim, scheduler: torch.optim=None) -> None:
         self.experiment_tracker = experiment_tracker
         self.training_parameters = training_parameters
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = scheduler
 
     def save_model(self, network, data):
         self.experiment_tracker.save_model(network, data)
@@ -22,7 +23,7 @@ class Pipeline:
 
         network.train()
         for module in training_stack:
-            module.train(train_loader, network, self.optimizer, self.experiment_tracker)
+            module.train(train_loader, network, self.optimizer, self.scheduler, self.experiment_tracker)
 
         self.save_model(network, next(iter(train_loader))[0][0])
 

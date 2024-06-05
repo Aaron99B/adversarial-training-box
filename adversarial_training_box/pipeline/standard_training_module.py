@@ -14,7 +14,7 @@ class StandardTrainingModule(TrainingModule):
         self.epsilon = epsilon
 
 
-    def train(self, data_loader: torch.utils.data.DataLoader, network: torch.nn.Module, optimizer: torch.optim, experiment_tracker: ExperimentTracker = None) -> None:
+    def train(self, data_loader: torch.utils.data.DataLoader, network: torch.nn.Module, optimizer: torch.optim, scheduler: torch.optim=None, experiment_tracker: ExperimentTracker = None) -> None:
         if not experiment_tracker is None:
             experiment_tracker.watch(network, self.criterion, log_option="all", log_frequency=10)
 
@@ -32,6 +32,11 @@ class StandardTrainingModule(TrainingModule):
 
                 if not experiment_tracker is None:
                     experiment_tracker.log({"loss": loss.item()})
+
+            if not experiment_tracker is None:
+                experiment_tracker.log({"train_accuracy" : (output.max(1)[1] == target).sum().item() / target.size(0)})
+            if not scheduler is None:
+                scheduler.step()
 
 
     def __str__(self) -> str:
