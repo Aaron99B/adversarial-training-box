@@ -21,4 +21,4 @@ class PGDAttack(AdversarialAttack):
         return adversaries
     
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name}_{self.epsilon_step_size}_{self.number_iterations}_{self.random_init}"
