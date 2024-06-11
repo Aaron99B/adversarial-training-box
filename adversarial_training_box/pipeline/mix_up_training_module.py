@@ -45,5 +45,5 @@ class MixUpTrainingModule(TrainingModule):
 
 
     def __str__(self) -> str:
-        return f"standard_module_{self.criterion}_{self.attack}_{self.epsilon}"
+        return f"standard_module_{self.criterion}_{self.lambda_value}"
     
