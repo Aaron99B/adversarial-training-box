@@ -19,7 +19,7 @@ class Pipeline:
     def save_model(self, network, data):
         self.experiment_tracker.save_model(network, data)
 
-    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule]):
+    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule], validation_module: TestModule = None, in_training_validation_loader: torch.utils.data.DataLoader = None):
 
         network.train()
         for epochs, module in training_stack:
@@ -31,6 +31,11 @@ class Pipeline:
 
                 if not self.scheduler is None:
                     self.scheduler.step()
+                
+                if validation_module:
+                    _, _, validation_accuracy = validation_module.test(in_training_validation_loader, network)
+                    network.zero_grad()
+                    self.experiment_tracker.log({"training_validation_accuracy" : validation_accuracy})
 
         self.save_model(network, next(iter(train_loader))[0][0])
 

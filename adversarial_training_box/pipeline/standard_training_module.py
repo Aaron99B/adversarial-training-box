@@ -6,7 +6,7 @@ from adversarial_training_box.adversarial_attack.adversarial_attack import Adver
 
 class StandardTrainingModule(TrainingModule):
 
-    def __init__(self, criterion: torch.nn.Module, attack: AdversarialAttack | None, epsilon: float) -> None:
+    def __init__(self, criterion: torch.nn.Module, attack: AdversarialAttack = None, epsilon: float = None) -> None:
         self.criterion = criterion
         self.attack = attack
         self.epsilon = epsilon
