@@ -1,5 +1,4 @@
 import torch
-from tqdm import tqdm
 
 from adversarial_training_box.pipeline.test_module import TestModule
 from adversarial_training_box.adversarial_attack.adversarial_attack import AdversarialAttack
@@ -15,7 +14,7 @@ class StandardTestModule(TestModule):
 
         correct = 0
         total = 0
-        for data, target in tqdm(data_loader):
+        for data, target in data_loader:
 
             if not self.attack is None:
                 data = self.attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=self.epsilon)

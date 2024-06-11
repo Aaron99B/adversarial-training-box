@@ -19,11 +19,18 @@ class Pipeline:
     def save_model(self, network, data):
         self.experiment_tracker.save_model(network, data)
 
-    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[TrainingModule]):
+    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule]):
 
         network.train()
-        for module in training_stack:
-            module.train(train_loader, network, self.optimizer, self.scheduler, self.experiment_tracker)
+        for epochs, module in training_stack:
+            for epoch in range(0, epochs):
+                train_accuracy = module.train(train_loader, network, self.optimizer, self.experiment_tracker)
+
+                if not self.experiment_tracker is None:
+                    self.experiment_tracker.log({"train_accuracy" : train_accuracy})
+
+                if not self.scheduler is None:
+                    self.scheduler.step()
 
         self.save_model(network, next(iter(train_loader))[0][0])
 
