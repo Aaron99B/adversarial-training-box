@@ -4,6 +4,7 @@ import torch.nn.functional as F
 class MNIST_NN(nn.Module):
     def __init__(self):
         super(MNIST_NN, self).__init__()
+        self.name = "mnist_nn"
         self.layer1 = nn.Linear(784, 256)
         self.layer2 = nn.Linear(256, 256)
         self.layer3 = nn.Linear(256, 10)
