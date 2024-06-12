@@ -9,6 +9,7 @@ class CNNMADRY(torch.nn.Module):
 
     def __init__(self):
         super(CNNMADRY, self).__init__()
+        self.name = "cnn_madry"
         self.conv1 = nn.Conv2d(1, 32, 5, 1, 2)
         self.conv2 = nn.Conv2d(32, 64, 5, 1, 2)
         self.fc1 = nn.Linear(7 * 7 * 64, 1024)
