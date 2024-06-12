@@ -24,9 +24,10 @@ class StandardTestModule(TestModule):
             _, final_pred = output.data.max(1, keepdim=True)
 
             correct += final_pred.eq(target.data.view_as(final_pred)).sum().item()
+
             total += target.size(0)
 
-            final_acc = 100 * correct / total
+            final_acc = correct / total
 
         return self.attack, self.epsilon, final_acc
 
