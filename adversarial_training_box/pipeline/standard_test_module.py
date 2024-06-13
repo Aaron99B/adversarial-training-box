@@ -27,7 +27,7 @@ class StandardTestModule(TestModule):
 
             total += target.size(0)
 
-            final_acc = correct / total
+        final_acc = correct / total
 
         return self.attack, self.epsilon, final_acc
 
