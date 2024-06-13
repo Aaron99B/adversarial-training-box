@@ -1,11 +1,11 @@
 
 import torch
-from tqdm import tqdm
-from adversarial_training_box.adversarial_attack.adversarial_attack import AdversarialAttack
+
 from adversarial_training_box.database.attribute_dict import AttributeDict
 from adversarial_training_box.database.experiment_tracker import ExperimentTracker
 from adversarial_training_box.pipeline.training_module import TrainingModule
 from adversarial_training_box.pipeline.test_module import TestModule
+from adversarial_training_box.pipeline.early_stopper import EarlyStopper
 
 
 class Pipeline:
@@ -16,15 +16,16 @@ class Pipeline:
         self.optimizer = optimizer
         self.scheduler = scheduler
 
-    def save_model(self, network, data):
-        self.experiment_tracker.save_model(network, data)
+    def save_model(self, network):
+        self.experiment_tracker.save_model(network)
 
-    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule], validation_module: TestModule = None, in_training_validation_loader: torch.utils.data.DataLoader = None):
+    def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule], validation_module: TestModule = None, in_training_validation_loader: torch.utils.data.DataLoader = None, early_stopper: EarlyStopper = None):
 
-        network.train()
         for epochs, module in training_stack:
             for epoch in range(0, epochs):
+                network.train()
                 train_accuracy = module.train(train_loader, network, self.optimizer, self.experiment_tracker)
+                validation_accuracy = train_accuracy
 
                 if not self.experiment_tracker is None:
                     self.experiment_tracker.log({"train_accuracy" : train_accuracy})
@@ -33,11 +34,18 @@ class Pipeline:
                     self.scheduler.step()
                 
                 if validation_module:
+                    network.eval()
                     _, _, validation_accuracy = validation_module.test(in_training_validation_loader, network)
                     network.zero_grad()
                     self.experiment_tracker.log({"training_validation_accuracy" : validation_accuracy})
+                
+                if early_stopper:
+                    should_stop = early_stopper.early_stop(validation_accuracy)
+                    if should_stop:
+                        print(f"early stopped at epoch: {epoch}")
+                        break
 
-        self.save_model(network, next(iter(train_loader))[0][0])
+                self.save_model(network)
 
 
     def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[TestModule]):

@@ -8,17 +8,18 @@ from onnx2torch import convert
 from adversarial_training_box.database.attribute_dict import AttributeDict
 
 class ExperimentTracker:
-    def __init__(self, project: str, base_path: Path, training_parameters: AttributeDict, login: bool) -> None:
-        self.training_parameters = training_parameters
+    def __init__(self, project: str, base_path: Path, login: bool) -> None:
         
         self.logged_in = login
         self.project = project
         self.project_path = base_path / project 
     
-    def initialize_new_experiment(self, experiment_name: str):
+    def initialize_new_experiment(self, experiment_name: str, training_parameters: AttributeDict):
         now = datetime.now()
         now_string = now.strftime("%d-%m-%Y+%H_%M")
         run_string = f"{experiment_name}_{now_string}"
+        self.training_parameters = training_parameters
+
         if self.logged_in:
             self.run = wandb.init(
             # set the wandb project where this run will be logged
@@ -29,7 +30,7 @@ class ExperimentTracker:
             )
 
         self.experiment_name = run_string
-
+        
         self.act_experiment_path = self.project_path / self.experiment_name
 
         if not self.act_experiment_path.exists():
@@ -38,17 +39,31 @@ class ExperimentTracker:
     def load(self, experiment_name: Path):
         self.act_experiment_path = self.project_path / experiment_name
     
-    def load_model(self, network_name: str) -> torch.nn.Module:
-        torch_model = convert(str(self.act_experiment_path / network_name))
+    def load_trained_model(self, network: torch.nn.Module) -> torch.nn.Module:
+        torch_model = torch.load(self.act_experiment_path / f"{network.name}.pth")
         return torch_model
+    
+    def export_to_onnx(self, torch_model: torch.nn.Module, data_loader: torch.utils.data.DataLoader):
+        example_input, _ = next(iter(data_loader))
+        example_input = example_input[0]
+        if "cnn" in torch_model.name:
+            example_input = example_input.unsqueeze(1)
+        torch.onnx.export(torch_model, example_input, 
+                        self.act_experiment_path / f"{torch_model.name}.onnx",
+                        export_params=True,
+                        input_names = ['input'],
+                        output_names = ['output'],
+                        dynamic_axes={'input' : {0 : 'batch_size'},
+                            'output' : {0 : 'batch_size'}})
     
     def log(self, information: dict) -> None:
         if self.logged_in:
             wandb.log(information)
 
-    def save_model(self, network, data, upload_model=False) -> None:
-        model_path = self.act_experiment_path / f"{network.name}.onnx"
-        torch.onnx.export(network, data, model_path)
+    def save_model(self, network, upload_model=False) -> None:
+        wandb.unwatch()
+        model_path = self.act_experiment_path / f"{network.name}.pth"
+        torch.save(network, model_path)
         
         if upload_model:
             artifact = wandb.Artifact('model', type='model')
