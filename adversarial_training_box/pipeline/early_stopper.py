@@ -6,14 +6,14 @@ class EarlyStopper:
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0
-        self.min_validation_loss = float('inf')
+        self.max_validation_accuracy = 0
 
-    def early_stop(self, validation_loss):
+    def early_stop(self, validation_accuracy):
         
-        if validation_loss < self.min_validation_loss:
-            self.min_validation_loss = validation_loss
+        if validation_accuracy > self.max_validation_accuracy:
+            self.max_validation_accuracy = validation_accuracy
             self.counter = 0
-        elif validation_loss > (self.min_validation_loss + self.min_delta):
+        elif validation_accuracy < (self.max_validation_accuracy - self.min_delta):
             self.counter += 1
             if self.counter >= self.patience:
                 return True
