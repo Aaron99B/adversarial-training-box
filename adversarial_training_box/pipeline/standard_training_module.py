@@ -13,13 +13,18 @@ class StandardTrainingModule(TrainingModule):
 
 
     def train(self, data_loader: torch.utils.data.DataLoader, network: torch.nn.Module, optimizer: torch.optim, experiment_tracker: ExperimentTracker = None) -> float:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         if not experiment_tracker is None:
             experiment_tracker.watch(network, self.criterion, log_option="all", log_frequency=10)
 
         for batch_idx, (data, target) in enumerate(data_loader):
+            
+            data, target = data.to(device), target.to(device)
 
             if not self.attack is None:
                 data = self.attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=self.epsilon)
+                data.to(device)
 
             output = network(data)
             loss = self.criterion(output, target)

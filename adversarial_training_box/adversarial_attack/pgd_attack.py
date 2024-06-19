@@ -13,7 +13,10 @@ class PGDAttack(AdversarialAttack):
         self.random_init = random_init
         
     def compute_perturbed_image(self, network: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
-        fmodel = PyTorchModel(network, bounds=(0, 1), device="cpu")
+        network.eval()
+        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        fmodel = PyTorchModel(network, bounds=(0, 1), device=device)
         attack = LinfPGD(abs_stepsize=self.epsilon_step_size, steps=self.number_iterations, random_start=self.random_init)
 
         raw_advs, adversaries, success = attack(fmodel, data, labels, epsilons=epsilon)

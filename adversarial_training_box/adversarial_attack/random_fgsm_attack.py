@@ -12,7 +12,8 @@ class RandomFGSMAttack(AdversarialAttack):
         self.alpha = alpha
 
     def compute_perturbed_image(self, network: torch.nn.Module, data: torch.tensor, labels: torch.tensor, epsilon: float) -> torch.tensor:
-        delta = torch.zeros_like(data).uniform_(-epsilon, epsilon).cpu()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        delta = torch.zeros_like(data).uniform_(-epsilon, epsilon).to(device)
         delta.requires_grad = True
         output = network(data + delta)
         loss = nn.CrossEntropyLoss()(output, labels)

@@ -11,10 +11,12 @@ class StandardTestModule(TestModule):
 
 
     def test(self, data_loader: torch.utils.data.DataLoader, network: torch.nn.Module) -> None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         correct = 0
         total = 0
         for data, target in data_loader:
+            data, target = data.to(device), target.to(device)
 
             if not self.attack is None:
                 data = self.attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=self.epsilon)

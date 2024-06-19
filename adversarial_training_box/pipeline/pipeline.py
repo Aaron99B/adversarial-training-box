@@ -20,6 +20,8 @@ class Pipeline:
         self.experiment_tracker.save_model(network)
 
     def train(self, train_loader: torch.utils.data.DataLoader, network: torch.nn.Module, training_stack: list[int, TrainingModule], validation_module: TestModule = None, in_training_validation_loader: torch.utils.data.DataLoader = None, early_stopper: EarlyStopper = None):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        network.to(device)
 
         for epochs, module in training_stack:
             for epoch in range(0, epochs):
@@ -49,7 +51,9 @@ class Pipeline:
 
 
     def test(self, network: torch.nn.Module, test_loader: torch.utils.data.DataLoader, testing_stack: list[TestModule]):
-
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        network.to(device)
+        
         network.eval()
         for module in testing_stack:
 
