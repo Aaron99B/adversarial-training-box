@@ -40,7 +40,9 @@ class ExperimentTracker:
         self.act_experiment_path = self.project_path / experiment_name
     
     def load_trained_model(self, network: torch.nn.Module) -> torch.nn.Module:
-        torch_model = torch.load(self.act_experiment_path / f"{network.name}.pth")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        torch_model = torch.load(self.act_experiment_path / f"{network.name}.pth", map_location=torch.device(device))
+        torch_model.to(device)
         return torch_model
     
     def export_to_onnx(self, torch_model: torch.nn.Module, data_loader: torch.utils.data.DataLoader):
