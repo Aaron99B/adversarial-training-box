@@ -12,9 +12,10 @@ class MixUpTrainingModule(TrainingModule):
         self.lambda_value = lambda_value
 
     def mixup_data(self, data: torch.Tensor, target: torch.Tensor, lambda_value):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         batch_size = data.size()[0]
-        index = torch.randperm(batch_size).cpu()
+        index = torch.randperm(batch_size).to(device)
 
         mixed_data = lambda_value * data + (1 - lambda_value) * data[index, :]
         target_a, target_b = target, target[index]
@@ -26,8 +27,10 @@ class MixUpTrainingModule(TrainingModule):
     def train(self, data_loader: torch.utils.data.DataLoader, network: torch.nn.Module, optimizer: torch.optim, experiment_tracker: ExperimentTracker = None) -> float:
         if not experiment_tracker is None:
             experiment_tracker.watch(network, self.criterion, log_option="all", log_frequency=10)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         for batch_idx, (data, target) in enumerate(data_loader):
+            data, target = data.to(device), target.to(device)
 
             mixed_data, target_a, target_b  = self.mixup_data(data, target, self.lambda_value)
 
