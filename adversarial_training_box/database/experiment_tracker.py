@@ -48,8 +48,8 @@ class ExperimentTracker:
     def export_to_onnx(self, torch_model: torch.nn.Module, data_loader: torch.utils.data.DataLoader):
         example_input, _ = next(iter(data_loader))
         example_input = example_input[0]
-        if "cnn" in torch_model.name:
-            example_input = example_input.unsqueeze(1)
+        if ("cnn" in torch_model.name) or ("cifar" in torch_model.name):
+            example_input = example_input.unsqueeze(0)
         torch.onnx.export(torch_model, example_input, 
                         self.act_experiment_path / f"{torch_model.name}.onnx",
                         export_params=True,
