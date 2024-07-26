@@ -5,7 +5,6 @@ import torch.nn.functional as F
 # Architecture from Madry et al. Towards Deep Learning Models Resistant to Adversarial Attacks
 
 class CNNMADRY(torch.nn.Module):
-    """Basic CNN architecture."""
 
     def __init__(self):
         self.name = "cnn_madry"
