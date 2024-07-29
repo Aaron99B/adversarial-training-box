@@ -17,11 +17,16 @@ class RandomFGSMAttack(AdversarialAttack):
         delta.requires_grad = True
         output = network(data + delta)
         loss = nn.CrossEntropyLoss()(output, labels)
+
+        network.zero_grad()
+        
         loss.backward()
         grad = delta.grad.detach()
         delta.data = torch.clamp(delta + self.alpha * torch.sign(grad), -epsilon, epsilon)
         delta.data = torch.max(torch.min(1-data, delta.data), 0-data)
         delta = delta.detach()
+
+        network.zero_grad()
 
         return torch.clamp(data + delta, 0, 1)
         
