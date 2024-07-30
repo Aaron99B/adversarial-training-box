@@ -38,10 +38,6 @@ class StandardTrainingModule(TrainingModule):
         train_accuracy = (output.max(1)[1] == target).sum().item() / target.size(0)
         return train_accuracy
 
-        
-
-
-
     def __str__(self) -> str:
         return f"standard_module_{self.criterion}_{self.attack}_{self.epsilon}"
     
