@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 from datetime import datetime
 from onnx2torch import convert
+import json
 
 from adversarial_training_box.database.attribute_dict import AttributeDict
 
@@ -35,6 +36,13 @@ class ExperimentTracker:
 
         if not self.act_experiment_path.exists():
             self.act_experiment_path.mkdir(parents=True)
+
+        self.save_configuration(self.act_experiment_path, self.training_parameters)
+
+    def save_configuration(self, path: Path, data: dict) -> None:
+        data = data
+        with open(path / "configuration.json", "w") as outfile: 
+            json.dump(dict(data), outfile)
 
     def load(self, experiment_name: Path):
         self.act_experiment_path = self.project_path / experiment_name
