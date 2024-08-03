@@ -109,8 +109,9 @@ class ResNet5(nn.Module):
 
 
 class ResNet9(nn.Module):
-    def __init__(self, block, num_blocks=2, num_classes=10, in_planes=64, bn=True, last_layer="avg"):
+    def __init__(self, block, num_blocks=2, num_classes=10, in_planes=64, bn=True, last_layer="avg", name: str = "resnet_9"):
         super(ResNet9, self).__init__()
+        self.name = name
         self.in_planes = in_planes
         self.bn = bn
         self.last_layer = last_layer
@@ -155,10 +156,10 @@ class ResNet9(nn.Module):
 
 
 def ResNet2B():
-    return ResNet5(BasicBlock, num_blocks=2, in_planes=8, bn=False, last_layer="dense")
+    return ResNet5(BasicBlock, num_blocks=2, in_planes=8, bn=False, last_layer="dense", name="resnet_2b")
 
 def ResNet4B():
-    return ResNet9(BasicBlock, num_blocks=2, in_planes=16, bn=False, last_layer="dense")
+    return ResNet9(BasicBlock, num_blocks=2, in_planes=16, bn=False, last_layer="dense", name="resnet_4b")
 
 if __name__ == '__main__':
     print('ResNet-2B:\n', ResNet2B())
