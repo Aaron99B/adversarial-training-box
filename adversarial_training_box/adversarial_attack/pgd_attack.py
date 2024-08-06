@@ -21,7 +21,7 @@ class PGDAttack(AdversarialAttack):
 
         raw_advs, adversaries, success = attack(fmodel, data, labels, epsilons=epsilon)
 
-        return adversaries
+        return adversaries.detach()
     
     def __str__(self) -> str:
         return f"{self.name}_{self.epsilon_step_size}_{self.number_iterations}_{self.random_init}"

@@ -6,7 +6,7 @@ from adversarial_training_box.database.experiment_tracker import ExperimentTrack
 from adversarial_training_box.adversarial_attack.adversarial_attack import AdversarialAttack
 
 class MixUpTrainingModule(TrainingModule):
-    """ Code for mixup function from https://github.com/locuslab/robust_overfitting/tree/master """
+    """ Code for mixup function from https://github.com/facebookresearch/mixup-cifar10/blob/main/train.py """
 
     def __init__(self, criterion: torch.nn.Module, alpha: float) -> None:
         self.criterion = criterion
