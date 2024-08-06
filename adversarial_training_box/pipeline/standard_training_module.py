@@ -26,11 +26,11 @@ class StandardTrainingModule(TrainingModule):
                 data = self.attack.compute_perturbed_image(network=network, data=data, labels=target, epsilon=self.epsilon)
                 data.to(device)
 
+            optimizer.zero_grad()
             output = network(data)
             loss = self.criterion(output, target)
             loss.backward()
             optimizer.step()
-            optimizer.zero_grad()
 
             if not experiment_tracker is None:
                 experiment_tracker.log({"loss": loss.item()})
