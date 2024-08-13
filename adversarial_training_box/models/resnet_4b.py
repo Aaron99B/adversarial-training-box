@@ -158,8 +158,8 @@ class ResNet9(nn.Module):
 def ResNet2B():
     return ResNet5(BasicBlock, num_blocks=2, in_planes=8, bn=False, last_layer="dense", name="resnet_2b")
 
-def ResNet4B():
-    return ResNet9(BasicBlock, num_blocks=2, in_planes=16, bn=False, last_layer="dense", name="resnet_4b")
+def ResNet4B(bn: bool = False):
+    return ResNet9(BasicBlock, num_blocks=2, in_planes=16, bn=bn, last_layer="dense", name="resnet_4b")
 
 if __name__ == '__main__':
     print('ResNet-2B:\n', ResNet2B())
