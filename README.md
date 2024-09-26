@@ -8,7 +8,7 @@ This Adversarial Training Box package simplifies your experiment pipeline for tr
 - clone the repository locally
 - create new environment ```conda create -n adversarial-training-box python=3.10```
 - activate the environment ```conda activate adversarial-training-box```
-- change into verona directory ```cd adversarial_training_box```**
+- change into verona directory ```cd adversarial_training_box```
 - install dependencies ```pip install -r requirements.txt```
 - install package locally (editable install for development) ```pip install -e .```
 
