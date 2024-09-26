@@ -13,6 +13,7 @@ This Adversarial Training Box package simplifies your experiment pipeline for tr
 - install package locally (editable install for development) ```pip install -e .```
 
 ## Available Training Techniques
+- Standard training
 - FGSM
 - PGD
 
