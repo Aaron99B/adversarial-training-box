@@ -2,9 +2,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class CONV_BIG(nn.Module):
-    def __init__(self):
+    def __init__(self, name = "conv_big"):
         super(CONV_BIG, self).__init__()
-        self.name = "conv_big"
+        self.name = name
         self.conv1 = nn.Conv2d(3, 32, 3, padding=1, stride=1)
         self.conv2 = nn.Conv2d(32, 32, 4, padding=1, stride=2)
         self.conv3 = nn.Conv2d(32, 64, 3, padding=1, stride=1)

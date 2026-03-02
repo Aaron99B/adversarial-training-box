@@ -54,8 +54,14 @@ class ExperimentTracker:
         return torch_model
     
     def export_to_onnx(self, torch_model: torch.nn.Module, data_loader: torch.utils.data.DataLoader):
+        torch_model.eval() 
+        
         example_input, _ = next(iter(data_loader))
         example_input = example_input[0]
+
+        device = next(torch_model.parameters()).device
+        example_input = example_input.to(device)
+
         if ("cnn" in torch_model.name) or ("cifar" in torch_model.name) or ("resnet" in torch_model.name) or ("conv" in torch_model.name) or ("gtsrb" in torch_model.name):
             example_input = example_input.unsqueeze(0)
         torch.onnx.export(torch_model, example_input, 
@@ -89,6 +95,34 @@ class ExperimentTracker:
        columns = ["class", "accuracy",]
        table = wandb.Table(data=data, columns=columns)
        wandb.log({"class_wise_accuracy" : table})
+    
+    def log_train_accuracies(self, training_metric: dict): 
+        """Save final train and validation accuracies to local file and to wandb"""
+        result_df_path = self.act_experiment_path / "train_accuracies.csv"
+        if result_df_path.exists():
+            df = pd.read_csv(result_df_path, index_col=0)
+            df.loc[len(df.index)] = training_metric
+        else:
+            df = pd.DataFrame([training_metric])
+        df.to_csv(result_df_path)
+
+        if self.logged_in:
+            table = wandb.Table(dataframe=df)
+            wandb.log({"train_accuracies" : table})
+
+    def log_training_metrics(self, training_metric: dict): 
+        """Save training time and other training metrics to local file and to wandb"""
+        result_df_path = self.act_experiment_path / "training_metrics.csv"
+        if result_df_path.exists():
+            df = pd.read_csv(result_df_path, index_col=0)
+            df.loc[len(df.index)] = training_metric
+        else:
+            df = pd.DataFrame([training_metric])
+        df.to_csv(result_df_path)
+
+        if self.logged_in:
+            table = wandb.Table(dataframe=df)
+            wandb.log({"metrics_table" : table})
 
     def log_test_result(self, result: dict):
         result_df_path = self.act_experiment_path / "accuracy_table.csv"

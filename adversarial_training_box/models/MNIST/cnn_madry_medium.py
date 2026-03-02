@@ -4,11 +4,11 @@ import torch.nn.functional as F
 
 # Architecture from Madry et al. Towards Deep Learning Models Resistant to Adversarial Attacks
 
-class CNNMADRY(torch.nn.Module):
+class CNN_MADRY_MEDIUM(torch.nn.Module):
 
-    def __init__(self):
-        self.name = "cnn_madry"
-        super(CNNMADRY, self).__init__()
+    def __init__(self, name="cnn_madry_medium"):
+        self.name = name
+        super(CNN_MADRY_MEDIUM, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, 5, 1, 2)
         self.conv2 = nn.Conv2d(32, 64, 5, 1, 2)
         self.fc1 = nn.Linear(7 * 7 * 64, 1024)
